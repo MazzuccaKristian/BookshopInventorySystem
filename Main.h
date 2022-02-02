@@ -15,6 +15,7 @@ void Setup();
 int GetUserInput();
 void ShowArchive();
 bool SearchBook();
+string ValidateString();
 string StringFormatter(string* rawString);
 
 /**
@@ -65,6 +66,7 @@ int GetUserChoice(){
             cout << "Choice not allowed. Please, try again..." << endl;
         }
     }while(!isValid);
+    cin.ignore();
     return choice;
 }
 
@@ -93,24 +95,33 @@ void ShowArchive(){
  */
 bool SearchBook(){
     bool isFound = false;
-    string rawInput, title, author;
+    string title, author;
     ifstream archive(ARCHIVE);
     if(!archive.is_open()){
         perror("ARCHIVE");
     }else{
         cout << "Enter title: ";
-        cin.ignore();
-        getline(cin, rawInput);
-        title = StringFormatter(&rawInput);
+        title = ValidateString();
         cout << "Enter author: ";
-        getline(cin, rawInput);
-        author = StringFormatter(&rawInput);
+        author = ValidateString();
+        cout << "TITOLO: " << title << ", AUTORE: " << author << endl;
     }
     return isFound;
 }
 
 /**
- * @brief Replace a whitespace with an underscore.
+ * @brief Retrive raw input from user.
+ * 
+ * @return string Validated and formatted string.
+ */
+string ValidateString(){
+    string rawInput, validatedString;
+    getline(cin, rawInput);
+    return StringFormatter(&rawInput);
+}
+
+/**
+ * @brief Format an input: replace a whitespace with an underscore.
  * NOTE: Must be used for interactions with the archive.
  * 
  * @param rawString raw input pointer.
