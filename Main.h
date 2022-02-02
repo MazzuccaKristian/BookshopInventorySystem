@@ -104,7 +104,12 @@ bool SearchBook(){
         title = ValidateString();
         cout << "Enter author: ";
         author = ValidateString();
-        cout << "TITOLO: " << title << ", AUTORE: " << author << endl;
+        string line, word;
+        int index;
+        while(getline(archive, line)){
+            //* Single line from archive retrieved.
+            //TODO: Tokenize line for word-by-word check.
+        }
     }
     return isFound;
 }
