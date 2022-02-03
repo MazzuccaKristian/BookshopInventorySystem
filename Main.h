@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using std::ifstream;
 using std::ofstream;
@@ -8,6 +9,7 @@ using std::cout;
 using std::endl;
 using std::cin;
 using std::string;
+using std::istringstream;
 
 #define ARCHIVE "archive.txt"
 
@@ -104,11 +106,18 @@ bool SearchBook(){
         title = ValidateString();
         cout << "Enter author: ";
         author = ValidateString();
-        string line, word;
-        int index;
+        string line;
+        string titleKey, titleValue, authorKey, authorValue;
         while(getline(archive, line)){
-            //* Single line from archive retrieved.
-            //TODO: Tokenize line for word-by-word check.
+        //* First prototype. Working, not final.
+            istringstream stringStream(line);
+            while(stringStream >> titleKey >> titleValue >> authorKey >> authorValue){
+                if((titleKey.compare("Title:") == 0) && (titleValue.compare(title) == 0) &&
+                    (authorKey.compare("Author:") == 0) && (authorValue.compare(author) == 0)){
+                        isFound = true;
+                }
+            }
+        //*
         }
     }
     return isFound;
