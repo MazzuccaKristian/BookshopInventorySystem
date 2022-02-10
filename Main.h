@@ -12,13 +12,15 @@ using std::string;
 using std::istringstream;
 
 #define ARCHIVE "archive.txt"
+#define TEMP "archive_temp.txt"
 
 void Setup();
 int GetUserInput();
 void ShowArchive();
 bool SearchBook();
-string ValidateString();
+string GetValidString();
 string StringFormatter(string* rawString);
+void RentBook();
 
 /**
  * @brief Perform checks for archive.
@@ -27,13 +29,13 @@ string StringFormatter(string* rawString);
 void Setup(){
     ifstream archive(ARCHIVE);
     if(archive.is_open()){
-        // Archive file exists. Setup completed.
+        // Archive exists. Setup completed.
         archive.close();
     }else{
-        // Archive file doesn't exist.
+        // Archive doesn't exist.
         ofstream newFile(ARCHIVE);
         if(newFile.is_open()){
-            // Archive file created. Setup completed.
+            // Archive created. Setup completed.
             newFile.close();
         }
     }
@@ -47,7 +49,7 @@ void inline ShowMainMenu(){
     cout << "--MAIN MENU--" << endl;
     cout << "1. Show archive;" << endl;
     cout << "2. Search book;" << endl;
-    cout << "3. Buy book;" << endl;
+    cout << "3. Rent book;" << endl;
     cout << "0. Exit." << endl;
 }
 
@@ -88,7 +90,6 @@ void ShowArchive(){
     }
 }
 
-//TODO: search in file must be added. Must be done line-by-line?
 /**
  * @brief From user's input (title and author), search for a specific book in archive.
  * 
@@ -103,22 +104,30 @@ bool SearchBook(){
         perror("ARCHIVE");
     }else{
         cout << "Enter title: ";
-        title = ValidateString();
+        title = GetValidString();
         cout << "Enter author: ";
-        author = ValidateString();
+        author = GetValidString();
         string line;
-        string titleKey, titleValue, authorKey, authorValue;
         while(getline(archive, line)){
-        //* First prototype. Working, not final.
             istringstream stringStream(line);
-            while(stringStream >> titleKey >> titleValue >> authorKey >> authorValue){
-                if((titleKey.compare("Title:") == 0) && (titleValue.compare(title) == 0) &&
-                    (authorKey.compare("Author:") == 0) && (authorValue.compare(author) == 0)){
-                        isFound = true;
+            string key, value;
+            bool isTitleFound = false;
+            bool isAuthorFound = false;
+            while(stringStream >> key >> value){ // Key-value pair from archive
+                if((key.compare("Title:") == 0) && (value.compare(title) == 0)){
+                    // Title is correct.
+                    isTitleFound = true;
+                }else if((key.compare("Author:") == 0) && (value.compare(author) == 0)){
+                    // Author is correct
+                    isAuthorFound = true;
                 }
             }
-        //*
+            if(isTitleFound && isAuthorFound){
+                isFound = true;
+            }
+            stringStream.clear(); // Reset istringstream for next line
         }
+        archive.close();
     }
     return isFound;
 }
@@ -128,8 +137,8 @@ bool SearchBook(){
  * 
  * @return string Validated and formatted string.
  */
-string ValidateString(){
-    string rawInput, validatedString;
+string GetValidString(){
+    string rawInput;
     getline(cin, rawInput);
     return StringFormatter(&rawInput);
 }
@@ -148,3 +157,55 @@ string StringFormatter(string* rawString){
     }
     return newString;
 }
+
+void RentBook(){
+    string title, author;
+    ifstream archive(ARCHIVE);
+    ofstream newArchive(TEMP);
+    if(archive.is_open() && newArchive.is_open()){
+        cout << "Enter title: ";
+        title = GetValidString();
+        cout << "Enter author: ";
+        author = GetValidString();
+        string line;
+        while(getline(archive, line)){
+            string newRecord;
+            istringstream stringStream(line);
+            string key, value;
+            bool isTitleFound = false;
+            bool isAuthorFound = false;
+            bool isAvailable = false;
+            int copies = 0;
+            while(stringStream >> key >> value){ // Key-value pair from archive
+                if((key.compare("Title:") == 0) && (value.compare(title) == 0)){
+                    // Title is correct.
+                    isTitleFound = true;
+                }else if((key.compare("Author:") == 0) && (value.compare(author) == 0)){
+                    // Author is correct
+                    isAuthorFound = true;
+                }else if(key.compare("Copies:") == 0){
+                    copies = std::stoi(value);
+                    if(copies > 0){
+                        isAvailable = true;
+                        copies--;
+                    }
+                }
+            }
+            if(isTitleFound && isAuthorFound && isAvailable){
+                newRecord = "Title: " + title + " Author: " + author + " Copies: " + std::to_string(copies);
+            }else{
+                newRecord = line;
+            }
+            newArchive << newRecord << endl;
+            stringStream.clear(); // Reset istringstream for next line
+        }
+        archive.close();
+        newArchive.close();
+        remove(ARCHIVE);
+        rename(TEMP, ARCHIVE);
+    }else{
+        perror("Archive.txt");
+    }
+}
+    
+
